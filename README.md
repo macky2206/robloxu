@@ -9,20 +9,8 @@ A Roblox mobile-style menu UI built with Lua.
 
 ## How to Use
 
-### Option A: Roblox Studio (recommended for development)
-
-1. Create a `LocalScript`.
-2. Put `main.lua` code into that `LocalScript`.
-3. Add `menu.lua` as a `ModuleScript` named `menu`:
-   - either as a child of the `LocalScript`
-   - or as a sibling
-   - or under `ReplicatedStorage`
-4. Play test.
-
-### Option B: loadstring (single-line execution)
-
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/copilot/make-design-like-sent-images/main.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/main/menu.lua"))()
 ```
 
 `main.lua` now tries local module locations first, then falls back to downloading `menu.lua` from GitHub if needed.

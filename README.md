@@ -10,7 +10,7 @@ A Roblox mobile-style menu UI built with Lua.
 ## How to Use
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/main/menu.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/main/main.lua"))()
 ```
 
 `main.lua` now tries local module locations first, then falls back to downloading `menu.lua` from GitHub if needed.

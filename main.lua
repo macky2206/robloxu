@@ -5,6 +5,28 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+local REMOTE_MENU_URLS = {
+	"https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/copilot/make-design-like-sent-images/menu.lua",
+	"https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/main/menu.lua",
+}
+
+local function loadRemoteMenuDesign()
+	for _, url in ipairs(REMOTE_MENU_URLS) do
+		local okSource, sourceOrError = pcall(game.HttpGet, game, url)
+		if okSource and type(sourceOrError) == "string" and #sourceOrError > 0 then
+			local chunk, compileError = loadstring(sourceOrError)
+			if chunk then
+				local okChunk, moduleOrError = pcall(chunk)
+				if okChunk and type(moduleOrError) == "table" and type(moduleOrError.build) == "function" then
+					return moduleOrError
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
 local function resolveMenuDesign()
 	if _G.__PerfectMobileMenuDesign then
 		return _G.__PerfectMobileMenuDesign
@@ -21,7 +43,12 @@ local function resolveMenuDesign()
 	end
 
 	if not menuModule then
-		error("Unable to find ModuleScript 'menu'. Place it under the script, as a sibling, or in ReplicatedStorage.")
+		local remoteMenu = loadRemoteMenuDesign()
+		if remoteMenu then
+			_G.__PerfectMobileMenuDesign = remoteMenu
+			return remoteMenu
+		end
+		error("Unable to find ModuleScript 'menu'. Place it under the script, as a sibling, in ReplicatedStorage, or ensure remote menu.lua is accessible.")
 	end
 
 	local loadedMenuDesign = require(menuModule)

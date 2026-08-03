@@ -461,41 +461,6 @@ function MenuDesign.build(playerGui)
 		})
 	end
 
-	local function makeHotkeyRow()
-		local row = Instance.new("Frame")
-		row.Size = UDim2.new(1, 0, 0, 40)
-		row.BackgroundTransparency = 1
-		row.Parent = body
-
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.new(1, -120, 1, 0)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamSemibold
-		label.Text = "Toggle Menu"
-		label.TextColor3 = theme.mainText
-		label.TextScaled = true
-		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Parent = row
-		textSize(label, 14, 30)
-
-		local key = Instance.new("TextButton")
-		key.AnchorPoint = Vector2.new(1, 0.5)
-		key.Position = UDim2.new(1, 0, 0.5, 0)
-		key.Size = UDim2.fromOffset(122, 40)
-		key.BackgroundColor3 = Color3.fromRGB(7, 18, 32)
-		key.AutoButtonColor = false
-		key.TextColor3 = theme.accent
-		key.Font = Enum.Font.Code
-		key.Text = "Insert"
-		key.TextScaled = true
-		key.Parent = row
-		round(key, 10)
-		stroke(key, Color3.fromRGB(32, 92, 97), 1, 0.25)
-		textSize(key, 16, 24)
-
-		return key
-	end
-
 	makeSection("APPEARANCE")
 	makeTitleRow("Menu Opacity")
 	makeSlider(0.92)
@@ -508,9 +473,6 @@ function MenuDesign.build(playerGui)
 	makeToggleRow("Click-Through", "Backdrop ignores mouse", false)
 	makeToggleRow("Remember Position", "Saves menu position on close", true)
 
-	makeSection("HOTKEYS")
-	local hotkeyButton = makeHotkeyRow()
-
 	return {
 		theme = theme,
 		screenGui = screenGui,
@@ -519,7 +481,6 @@ function MenuDesign.build(playerGui)
 		closeButton = closeButton,
 		header = header,
 		toggles = toggles,
-		hotkeyButton = hotkeyButton,
 	}
 end
 

@@ -5,7 +5,31 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local MenuDesign = require(script.Parent:WaitForChild("menu"))
+local function resolveMenuDesign()
+	if _G.__PerfectMobileMenuDesign then
+		return _G.__PerfectMobileMenuDesign
+	end
+
+	local menuModule = script and script:FindFirstChild("menu")
+
+	if not menuModule and script and script.Parent then
+		menuModule = script.Parent:FindFirstChild("menu")
+	end
+
+	if not menuModule then
+		menuModule = game:GetService("ReplicatedStorage"):FindFirstChild("menu")
+	end
+
+	if not menuModule then
+		error("Unable to find ModuleScript 'menu'. Place it under the script, as a sibling, or in ReplicatedStorage.")
+	end
+
+	local loadedMenuDesign = require(menuModule)
+	_G.__PerfectMobileMenuDesign = loadedMenuDesign
+	return loadedMenuDesign
+end
+
+local MenuDesign = resolveMenuDesign()
 local ui = MenuDesign.build(playerGui)
 local theme = ui.theme
 

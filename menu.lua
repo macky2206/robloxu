@@ -169,16 +169,11 @@ function MenuDesign.build(playerGui)
 		return holder
 	end
 
-	makeSideIcon("⬡", false)
 	makeSideIcon("⌂", true)
-	makeSideIcon("◉", false)
-	makeSideIcon("◈", false)
-	makeSideIcon("◧", false)
-	makeSideIcon("⚙", false)
 
 	local spacer = Instance.new("Frame")
 	spacer.BackgroundTransparency = 1
-	spacer.Size = UDim2.new(1, 0, 1, -420)
+	spacer.Size = UDim2.new(1, 0, 1, -120)
 	spacer.Parent = sidebar
 
 	local closeButton = Instance.new("TextButton")

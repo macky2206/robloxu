@@ -52,6 +52,8 @@ function MenuDesign.build(playerGui)
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screenGui.Parent = playerGui
 
+	local camera = workspace.CurrentCamera
+
 	local openButton = Instance.new("TextButton")
 	openButton.Name = "OpenMenuButton"
 	openButton.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -99,6 +101,7 @@ function MenuDesign.build(playerGui)
 	menu.BackgroundColor3 = theme.windowBg
 	menu.Visible = false
 	menu.Parent = screenGui
+	menu.ClipsDescendants = true
 	round(menu, 22)
 	stroke(menu, theme.windowBorder, 1, 0.2)
 
@@ -573,6 +576,56 @@ function MenuDesign.build(playerGui)
 	makeToggleRow("Always on Top", "Forces menu above all windows", true)
 	makeToggleRow("Click-Through", "Backdrop ignores mouse", false)
 	makeToggleRow("Remember Position", "Saves menu position on close", true)
+
+	local function applyResponsiveMenuLayout()
+		local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+		local shortestSide = math.min(viewportSize.X, viewportSize.Y)
+		local isMobile = shortestSide <= 900
+
+		if isMobile then
+			if viewportSize.Y >= viewportSize.X then
+				menu.Size = UDim2.fromScale(0.92, 0.84)
+				menuAspect.DominantAxis = Enum.DominantAxis.Height
+			else
+				menu.Size = UDim2.fromScale(0.82, 0.72)
+				menuAspect.DominantAxis = Enum.DominantAxis.Width
+			end
+
+			sidebar.Size = UDim2.fromOffset(68, 1)
+			sidebarHeight.MinSize = Vector2.new(68, 0)
+			contentWrap.Position = UDim2.fromOffset(68, 0)
+			contentWrap.Size = UDim2.new(1, -68, 1, 0)
+			bodyPadding.PaddingLeft = UDim.new(0, 18)
+			bodyPadding.PaddingRight = UDim.new(0, 18)
+			header.Size = UDim2.new(1, 0, 0, 80)
+			body.Size = UDim2.new(1, 0, 1, -80)
+			headerIcon.Position = UDim2.fromOffset(22, 22)
+			headerTitle.Position = UDim2.fromOffset(48, 21)
+			headerTag.Position = UDim2.new(1, -20, 0, 28)
+			headerTag.Size = UDim2.fromOffset(116, 22)
+		else
+			menu.Size = UDim2.fromOffset(470, 820)
+			menuAspect.DominantAxis = Enum.DominantAxis.Width
+			sidebar.Size = UDim2.fromOffset(72, 1)
+			sidebarHeight.MinSize = Vector2.new(72, 0)
+			contentWrap.Position = UDim2.fromOffset(72, 0)
+			contentWrap.Size = UDim2.new(1, -72, 1, 0)
+			bodyPadding.PaddingLeft = UDim.new(0, 28)
+			bodyPadding.PaddingRight = UDim.new(0, 24)
+			header.Size = UDim2.new(1, 0, 0, 86)
+			body.Size = UDim2.new(1, 0, 1, -86)
+			headerIcon.Position = UDim2.fromOffset(28, 25)
+			headerTitle.Position = UDim2.fromOffset(56, 24)
+			headerTag.Position = UDim2.new(1, -26, 0, 30)
+			headerTag.Size = UDim2.fromOffset(130, 24)
+		end
+	end
+
+	applyResponsiveMenuLayout()
+
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyResponsiveMenuLayout)
+	end
 
 	return {
 		theme = theme,

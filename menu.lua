@@ -1,61 +1,67 @@
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+local existing = playerGui:FindFirstChild("PerfectMobileMenu")
+if existing then
+	existing:Destroy()
+end
+
 local theme = {
-	background = Color3.fromRGB(11, 18, 32),
-	surface = Color3.fromRGB(20, 30, 49),
-	surfaceBright = Color3.fromRGB(29, 42, 66),
-	accent = Color3.fromRGB(0, 203, 255),
-	accentDark = Color3.fromRGB(0, 137, 255),
-	text = Color3.fromRGB(240, 249, 255),
-	subText = Color3.fromRGB(154, 177, 209),
-	danger = Color3.fromRGB(255, 94, 125),
-	success = Color3.fromRGB(66, 240, 161),
+	appBg = Color3.fromRGB(5, 11, 21),
+	windowBg = Color3.fromRGB(7, 14, 27),
+	windowBorder = Color3.fromRGB(20, 58, 74),
+	sidebar = Color3.fromRGB(6, 12, 24),
+	sectionText = Color3.fromRGB(38, 179, 160),
+	mainText = Color3.fromRGB(205, 216, 223),
+	subText = Color3.fromRGB(90, 104, 121),
+	line = Color3.fromRGB(19, 52, 65),
+	track = Color3.fromRGB(30, 38, 54),
+	accent = Color3.fromRGB(26, 233, 191),
+	switchOff = Color3.fromRGB(32, 39, 55),
+	switchKnob = Color3.fromRGB(200, 211, 217),
 }
 
-local function round(target, radius)
+local function round(instance, radius)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, radius)
-	corner.Parent = target
+	corner.Parent = instance
 	return corner
 end
 
-local function stroke(target, color, thickness, transparency)
-	local s = Instance.new("UIStroke")
-	s.Color = color
-	s.Thickness = thickness or 1
-	s.Transparency = transparency or 0
-	s.Parent = target
-	return s
+local function stroke(instance, color, thickness, transparency)
+	local uiStroke = Instance.new("UIStroke")
+	uiStroke.Color = color
+	uiStroke.Thickness = thickness or 1
+	uiStroke.Transparency = transparency or 0
+	uiStroke.Parent = instance
+	return uiStroke
 end
 
-local function makeDraggable(dragHandle, dragTarget)
-	dragHandle.Active = true
+local function textSize(label, minSize, maxSize)
+	local constraint = Instance.new("UITextSizeConstraint")
+	constraint.MinTextSize = minSize
+	constraint.MaxTextSize = maxSize
+	constraint.Parent = label
+	return constraint
+end
+
+local function makeDraggable(handle, target)
+	handle.Active = true
 
 	local dragging = false
 	local dragInput
-	local startPos = Vector2.zero
-	local startTargetPos = dragTarget.Position
+	local startPos
+	local startTargetPos
 
-	local function update(inputPos)
-		local delta = inputPos - startPos
-		dragTarget.Position = UDim2.new(
-			startTargetPos.X.Scale,
-			startTargetPos.X.Offset + delta.X,
-			startTargetPos.Y.Scale,
-			startTargetPos.Y.Offset + delta.Y
-		)
-	end
-
-	dragHandle.InputBegan:Connect(function(input)
+	handle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			startPos = input.Position
-			startTargetPos = dragTarget.Position
+			startTargetPos = target.Position
 			dragInput = input
 
 			input.Changed:Connect(function()
@@ -66,7 +72,7 @@ local function makeDraggable(dragHandle, dragTarget)
 		end
 	end)
 
-	dragHandle.InputChanged:Connect(function(input)
+	handle.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			dragInput = input
 		end
@@ -74,7 +80,13 @@ local function makeDraggable(dragHandle, dragTarget)
 
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and input == dragInput then
-			update(input.Position)
+			local delta = input.Position - startPos
+			target.Position = UDim2.new(
+				startTargetPos.X.Scale,
+				startTargetPos.X.Offset + delta.X,
+				startTargetPos.Y.Scale,
+				startTargetPos.Y.Offset + delta.Y
+			)
 		end
 	end)
 end
@@ -89,449 +101,480 @@ screenGui.Parent = playerGui
 local openButton = Instance.new("TextButton")
 openButton.Name = "OpenMenuButton"
 openButton.AnchorPoint = Vector2.new(0.5, 0.5)
-openButton.Size = UDim2.fromScale(0.23, 0.075)
 openButton.Position = UDim2.fromScale(0.5, 0.9)
-openButton.BackgroundColor3 = theme.surface
-openButton.TextColor3 = theme.text
-openButton.Text = "OPEN"
-openButton.Font = Enum.Font.GothamBold
-openButton.TextScaled = true
+openButton.Size = UDim2.fromOffset(66, 66)
+openButton.BackgroundColor3 = Color3.fromRGB(10, 18, 33)
+openButton.Text = ""
 openButton.AutoButtonColor = false
 openButton.Parent = screenGui
-round(openButton, 16)
-stroke(openButton, Color3.fromRGB(112, 142, 187), 1, 0.45)
+round(openButton, 18)
+stroke(openButton, Color3.fromRGB(23, 78, 92), 1, 0.15)
 
-local openGradient = Instance.new("UIGradient")
-openGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, theme.accent),
-	ColorSequenceKeypoint.new(1, theme.accentDark),
-})
-openGradient.Rotation = 20
-openGradient.Parent = openButton
+local openGlow = Instance.new("Frame")
+openGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+openGlow.Position = UDim2.fromScale(0.5, 0.5)
+openGlow.Size = UDim2.fromScale(1, 1)
+openGlow.BackgroundTransparency = 1
+openGlow.Parent = openButton
+round(openGlow, 18)
+stroke(openGlow, theme.accent, 1, 0.55)
 
-local openTextLimit = Instance.new("UITextSizeConstraint")
-openTextLimit.MinTextSize = 14
-openTextLimit.MaxTextSize = 24
-openTextLimit.Parent = openButton
+local iconHolder = Instance.new("Frame")
+iconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+iconHolder.Position = UDim2.fromScale(0.5, 0.5)
+iconHolder.Size = UDim2.fromScale(0.54, 0.54)
+iconHolder.BackgroundTransparency = 1
+iconHolder.Parent = openButton
 
-local openAspect = Instance.new("UIAspectRatioConstraint")
-openAspect.AspectRatio = 3.1
-openAspect.Parent = openButton
+for i = 0, 2 do
+	local line = Instance.new("Frame")
+	line.AnchorPoint = Vector2.new(0.5, 0.5)
+	line.Position = UDim2.fromScale(0.5, 0.3 + i * 0.2)
+	line.Size = UDim2.fromScale(0.74, 0.11)
+	line.BackgroundColor3 = theme.mainText
+	line.BorderSizePixel = 0
+	line.Parent = iconHolder
+	round(line, 999)
+end
 
-local mainMenu = Instance.new("Frame")
-mainMenu.Name = "MainMenu"
-mainMenu.AnchorPoint = Vector2.new(0.5, 0.5)
-mainMenu.Size = UDim2.fromScale(0.84, 0.72)
-mainMenu.Position = UDim2.fromScale(0.5, 0.5)
-mainMenu.BackgroundColor3 = theme.background
-mainMenu.Visible = false
-mainMenu.Parent = screenGui
-round(mainMenu, 18)
-stroke(mainMenu, Color3.fromRGB(124, 163, 216), 1, 0.5)
+local menu = Instance.new("Frame")
+menu.Name = "MainMenu"
+menu.AnchorPoint = Vector2.new(0.5, 0.5)
+menu.Position = UDim2.fromScale(0.5, 0.5)
+menu.Size = UDim2.fromOffset(470, 820)
+menu.BackgroundColor3 = theme.windowBg
+menu.Visible = false
+menu.Parent = screenGui
+round(menu, 22)
+stroke(menu, theme.windowBorder, 1, 0.2)
 
 local menuAspect = Instance.new("UIAspectRatioConstraint")
-menuAspect.AspectRatio = 0.78
-menuAspect.Parent = mainMenu
+menuAspect.AspectRatio = 0.58
+menuAspect.Parent = menu
 
-local topBar = Instance.new("Frame")
-topBar.Name = "TopBar"
-topBar.Size = UDim2.fromScale(1, 0.17)
-topBar.BackgroundColor3 = theme.surface
-topBar.Parent = mainMenu
-round(topBar, 18)
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.fromOffset(72, 1)
+sidebar.AutomaticSize = Enum.AutomaticSize.Y
+sidebar.BackgroundColor3 = theme.sidebar
+sidebar.BorderSizePixel = 0
+sidebar.Parent = menu
 
-local barPatch = Instance.new("Frame")
-barPatch.Size = UDim2.fromScale(1, 0.3)
-barPatch.Position = UDim2.fromScale(0, 0.7)
-barPatch.BackgroundColor3 = theme.surface
-barPatch.BorderSizePixel = 0
-barPatch.Parent = topBar
+local sidebarHeight = Instance.new("UISizeConstraint")
+sidebarHeight.MinSize = Vector2.new(72, 0)
+sidebarHeight.Parent = sidebar
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.fromScale(0.68, 0.46)
-title.Position = UDim2.fromScale(0.06, 0.15)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBold
-title.Text = "ROBLOXU MENU"
-title.TextScaled = true
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.TextColor3 = theme.text
-title.Parent = topBar
+local sidebarPatch = Instance.new("Frame")
+sidebarPatch.Size = UDim2.new(0, 26, 1, 0)
+sidebarPatch.Position = UDim2.new(1, -26, 0, 0)
+sidebarPatch.BackgroundColor3 = theme.sidebar
+sidebarPatch.BorderSizePixel = 0
+sidebarPatch.Parent = sidebar
 
-local titleSize = Instance.new("UITextSizeConstraint")
-titleSize.MaxTextSize = 24
-titleSize.MinTextSize = 13
-titleSize.Parent = title
+round(sidebar, 22)
 
-local subtitle = Instance.new("TextLabel")
-subtitle.Size = UDim2.fromScale(0.68, 0.3)
-subtitle.Position = UDim2.fromScale(0.06, 0.56)
-subtitle.BackgroundTransparency = 1
-subtitle.Font = Enum.Font.GothamMedium
-subtitle.Text = "Stylish • Smooth • Mobile Friendly"
-subtitle.TextScaled = true
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.TextColor3 = theme.subText
-subtitle.Parent = topBar
+local navLayout = Instance.new("UIListLayout")
+navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+navLayout.Padding = UDim.new(0, 14)
+navLayout.Parent = sidebar
 
-local subtitleSize = Instance.new("UITextSizeConstraint")
-subtitleSize.MaxTextSize = 16
-subtitleSize.MinTextSize = 10
-subtitleSize.Parent = subtitle
+local navPadding = Instance.new("UIPadding")
+navPadding.PaddingTop = UDim.new(0, 14)
+navPadding.PaddingBottom = UDim.new(0, 16)
+navPadding.Parent = sidebar
+
+local function makeSideIcon(symbol, selected)
+	local holder = Instance.new("Frame")
+	holder.Size = UDim2.fromOffset(54, 54)
+	holder.BackgroundColor3 = selected and Color3.fromRGB(10, 25, 35) or Color3.fromRGB(8, 14, 27)
+	holder.BackgroundTransparency = selected and 0 or 0.2
+	holder.Parent = sidebar
+	round(holder, 16)
+	stroke(holder, selected and theme.accent or Color3.fromRGB(33, 54, 73), selected and 2 or 1, selected and 0.05 or 0.55)
+
+	if selected then
+		local indicator = Instance.new("Frame")
+		indicator.AnchorPoint = Vector2.new(0, 0.5)
+		indicator.Position = UDim2.fromScale(0, 0.5)
+		indicator.Size = UDim2.new(0, 4, 0.75, 0)
+		indicator.BackgroundColor3 = theme.accent
+		indicator.BorderSizePixel = 0
+		indicator.Parent = holder
+		round(indicator, 999)
+	end
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextColor3 = selected and theme.accent or Color3.fromRGB(82, 100, 122)
+	label.Text = symbol
+	label.TextScaled = true
+	label.Parent = holder
+	textSize(label, 11, 24)
+
+	return holder
+end
+
+makeSideIcon("⬡", false)
+makeSideIcon("⌂", true)
+makeSideIcon("◉", false)
+makeSideIcon("◈", false)
+makeSideIcon("◧", false)
+makeSideIcon("⚙", false)
+
+local spacer = Instance.new("Frame")
+spacer.BackgroundTransparency = 1
+spacer.Size = UDim2.new(1, 0, 1, -420)
+spacer.Parent = sidebar
 
 local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.AnchorPoint = Vector2.new(1, 0.5)
-closeButton.Size = UDim2.fromScale(0.13, 0.56)
-closeButton.Position = UDim2.fromScale(0.965, 0.5)
-closeButton.BackgroundColor3 = theme.danger
+closeButton.Size = UDim2.fromOffset(54, 54)
+closeButton.BackgroundColor3 = Color3.fromRGB(8, 14, 27)
+closeButton.BackgroundTransparency = 0.35
 closeButton.Text = "✕"
-closeButton.TextColor3 = theme.text
-closeButton.Font = Enum.Font.GothamBold
+closeButton.Font = Enum.Font.GothamMedium
+closeButton.TextColor3 = Color3.fromRGB(112, 56, 74)
 closeButton.TextScaled = true
-closeButton.Parent = topBar
-round(closeButton, 12)
-stroke(closeButton, Color3.fromRGB(255, 170, 189), 1, 0.35)
+closeButton.AutoButtonColor = false
+closeButton.Parent = sidebar
+round(closeButton, 16)
+textSize(closeButton, 18, 28)
 
-local closeSize = Instance.new("UITextSizeConstraint")
-closeSize.MaxTextSize = 24
-closeSize.MinTextSize = 14
-closeSize.Parent = closeButton
+local contentWrap = Instance.new("Frame")
+contentWrap.Size = UDim2.new(1, -72, 1, 0)
+contentWrap.Position = UDim2.fromOffset(72, 0)
+contentWrap.BackgroundTransparency = 1
+contentWrap.Parent = menu
 
-local content = Instance.new("ScrollingFrame")
-content.Name = "Content"
-content.Size = UDim2.fromScale(0.93, 0.77)
-content.Position = UDim2.fromScale(0.035, 0.2)
-content.BackgroundTransparency = 1
-content.BorderSizePixel = 0
-content.ScrollBarThickness = 5
-content.ScrollBarImageColor3 = theme.accent
-content.AutomaticCanvasSize = Enum.AutomaticSize.Y
-content.CanvasSize = UDim2.new()
-content.Parent = mainMenu
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 86)
+header.BackgroundTransparency = 1
+header.Parent = contentWrap
 
-local listLayout = Instance.new("UIListLayout")
-listLayout.Padding = UDim.new(0, 10)
-listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-listLayout.Parent = content
+local headerLine = Instance.new("Frame")
+headerLine.AnchorPoint = Vector2.new(0, 1)
+headerLine.Position = UDim2.fromScale(0, 1)
+headerLine.Size = UDim2.new(1, 0, 0, 1)
+headerLine.BackgroundColor3 = theme.line
+headerLine.BorderSizePixel = 0
+headerLine.Parent = header
 
-local contentPadding = Instance.new("UIPadding")
-contentPadding.PaddingTop = UDim.new(0, 2)
-contentPadding.PaddingBottom = UDim.new(0, 8)
-contentPadding.Parent = content
+local headerIcon = Instance.new("TextLabel")
+headerIcon.Position = UDim2.fromOffset(28, 25)
+headerIcon.Size = UDim2.fromOffset(26, 34)
+headerIcon.BackgroundTransparency = 1
+headerIcon.Font = Enum.Font.GothamBold
+headerIcon.Text = "⌂"
+headerIcon.TextColor3 = theme.accent
+headerIcon.TextScaled = true
+headerIcon.TextXAlignment = Enum.TextXAlignment.Left
+headerIcon.Parent = header
+textSize(headerIcon, 14, 24)
 
-local function createCard(name)
-	local card = Instance.new("Frame")
-	card.Name = name
-	card.Size = UDim2.fromScale(1, 0)
-	card.AutomaticSize = Enum.AutomaticSize.Y
-	card.BackgroundColor3 = theme.surface
-	card.Parent = content
-	round(card, 12)
-	stroke(card, Color3.fromRGB(96, 121, 161), 1, 0.6)
+local headerTitle = Instance.new("TextLabel")
+headerTitle.Position = UDim2.fromOffset(56, 24)
+headerTitle.Size = UDim2.new(0.58, 0, 0, 34)
+headerTitle.BackgroundTransparency = 1
+headerTitle.Font = Enum.Font.GothamBlack
+headerTitle.Text = "H O M E"
+headerTitle.TextColor3 = theme.mainText
+headerTitle.TextXAlignment = Enum.TextXAlignment.Left
+headerTitle.TextScaled = true
+headerTitle.Parent = header
+textSize(headerTitle, 20, 34)
 
-	local padding = Instance.new("UIPadding")
-	padding.PaddingTop = UDim.new(0, 10)
-	padding.PaddingBottom = UDim.new(0, 10)
-	padding.PaddingLeft = UDim.new(0, 12)
-	padding.PaddingRight = UDim.new(0, 12)
-	padding.Parent = card
+local headerTag = Instance.new("TextLabel")
+headerTag.AnchorPoint = Vector2.new(1, 0)
+headerTag.Position = UDim2.new(1, -26, 0, 30)
+headerTag.Size = UDim2.fromOffset(130, 24)
+headerTag.BackgroundTransparency = 1
+headerTag.Font = Enum.Font.Code
+headerTag.Text = "MOD MENU"
+headerTag.TextColor3 = Color3.fromRGB(36, 131, 117)
+headerTag.TextXAlignment = Enum.TextXAlignment.Right
+headerTag.TextScaled = true
+headerTag.Parent = header
+textSize(headerTag, 12, 20)
 
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 8)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = card
+local body = Instance.new("ScrollingFrame")
+body.Size = UDim2.new(1, 0, 1, -86)
+body.Position = UDim2.fromOffset(0, 86)
+body.BackgroundTransparency = 1
+body.BorderSizePixel = 0
+body.ScrollBarThickness = 2
+body.ScrollBarImageTransparency = 0.5
+body.ScrollBarImageColor3 = theme.accent
+body.AutomaticCanvasSize = Enum.AutomaticSize.Y
+body.CanvasSize = UDim2.new()
+body.Parent = contentWrap
 
-	return card
+local bodyPadding = Instance.new("UIPadding")
+bodyPadding.PaddingTop = UDim.new(0, 18)
+bodyPadding.PaddingBottom = UDim.new(0, 16)
+bodyPadding.PaddingLeft = UDim.new(0, 28)
+bodyPadding.PaddingRight = UDim.new(0, 24)
+bodyPadding.Parent = body
+
+local bodyLayout = Instance.new("UIListLayout")
+bodyLayout.Padding = UDim.new(0, 12)
+bodyLayout.Parent = body
+
+local function makeSection(title)
+	local holder = Instance.new("Frame")
+	holder.Size = UDim2.new(1, 0, 0, 22)
+	holder.BackgroundTransparency = 1
+	holder.Parent = body
+
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromOffset(180, 22)
+	label.Font = Enum.Font.Code
+	label.Text = title
+	label.TextColor3 = theme.sectionText
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = holder
+	textSize(label, 12, 24)
+
+	local divider = Instance.new("Frame")
+	divider.AnchorPoint = Vector2.new(1, 0.5)
+	divider.Position = UDim2.new(1, 0, 0.5, 0)
+	divider.Size = UDim2.new(1, -145, 0, 1)
+	divider.BackgroundColor3 = theme.line
+	divider.BorderSizePixel = 0
+	divider.Parent = holder
 end
 
-local function createCardTitle(parent, text)
-	local heading = Instance.new("TextLabel")
-	heading.Size = UDim2.fromScale(1, 0.22)
-	heading.AutomaticSize = Enum.AutomaticSize.Y
-	heading.BackgroundTransparency = 1
-	heading.Font = Enum.Font.GothamBold
-	heading.Text = text
-	heading.TextColor3 = theme.text
-	heading.TextScaled = true
-	heading.TextXAlignment = Enum.TextXAlignment.Left
-	heading.Parent = parent
-
-	local headingSize = Instance.new("UITextSizeConstraint")
-	headingSize.MinTextSize = 12
-	headingSize.MaxTextSize = 18
-	headingSize.Parent = heading
-end
-
-local function createRow(parent)
-	local row = Instance.new("Frame")
-	row.Size = UDim2.fromScale(1, 0)
-	row.AutomaticSize = Enum.AutomaticSize.Y
+local function makeTitleRow(text)
+	local row = Instance.new("TextLabel")
+	row.Size = UDim2.new(1, 0, 0, 36)
 	row.BackgroundTransparency = 1
-	row.Parent = parent
-
-	local layout = Instance.new("UIListLayout")
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-	layout.VerticalAlignment = Enum.VerticalAlignment.Center
-	layout.Padding = UDim.new(0, 8)
-	layout.Parent = row
-
+	row.Font = Enum.Font.GothamSemibold
+	row.Text = text
+	row.TextColor3 = theme.mainText
+	row.TextXAlignment = Enum.TextXAlignment.Left
+	row.TextScaled = true
+	row.Parent = body
+	textSize(row, 14, 40)
 	return row
 end
 
-local buttonCard = createCard("ButtonCard")
-createCardTitle(buttonCard, "Button")
+local function makeSlider(value)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 26)
+	row.BackgroundTransparency = 1
+	row.Parent = body
 
-local actionButton = Instance.new("TextButton")
-actionButton.Size = UDim2.fromScale(1, 0.34)
-actionButton.AutomaticSize = Enum.AutomaticSize.Y
-actionButton.BackgroundColor3 = theme.accentDark
-actionButton.Font = Enum.Font.GothamSemibold
-actionButton.Text = "Run Action"
-actionButton.TextColor3 = theme.text
-actionButton.TextScaled = true
-actionButton.Parent = buttonCard
-round(actionButton, 10)
-stroke(actionButton, Color3.fromRGB(145, 217, 255), 1, 0.5)
+	local track = Instance.new("Frame")
+	track.Position = UDim2.new(0, 0, 0.5, -4)
+	track.Size = UDim2.new(1, -88, 0, 8)
+	track.BackgroundColor3 = theme.track
+	track.BorderSizePixel = 0
+	track.Parent = row
+	round(track, 999)
 
-local actionButtonSize = Instance.new("UITextSizeConstraint")
-actionButtonSize.MinTextSize = 12
-actionButtonSize.MaxTextSize = 18
-actionButtonSize.Parent = actionButton
+	local fill = Instance.new("Frame")
+	fill.Size = UDim2.fromScale(value, 1)
+	fill.BackgroundColor3 = theme.accent
+	fill.BorderSizePixel = 0
+	fill.Parent = track
+	round(fill, 999)
 
-actionButton.Activated:Connect(function()
-	actionButton.Text = "Action Complete"
-	actionButton.BackgroundColor3 = theme.success
-	task.delay(0.6, function()
-		actionButton.Text = "Run Action"
-		actionButton.BackgroundColor3 = theme.accentDark
-	end)
-end)
+	local valueLabel = Instance.new("TextLabel")
+	valueLabel.AnchorPoint = Vector2.new(1, 0.5)
+	valueLabel.Position = UDim2.new(1, 0, 0.5, 0)
+	valueLabel.Size = UDim2.fromOffset(70, 22)
+	valueLabel.BackgroundTransparency = 1
+	valueLabel.Font = Enum.Font.Code
+	valueLabel.TextColor3 = theme.accent
+	valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+	valueLabel.Text = string.format("%d%%", math.floor(value * 100 + 0.5))
+	valueLabel.TextScaled = true
+	valueLabel.Parent = row
+	textSize(valueLabel, 12, 24)
+end
 
-local toggleCard = createCard("ToggleCard")
-createCardTitle(toggleCard, "Toggle")
+local function makeAccentRow()
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 44)
+	row.BackgroundTransparency = 1
+	row.Parent = body
 
-local toggleRow = createRow(toggleCard)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0, 180, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamSemibold
+	label.Text = "Accent Color"
+	label.TextColor3 = theme.mainText
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = row
+	textSize(label, 13, 34)
 
-local toggleLabel = Instance.new("TextLabel")
-toggleLabel.Size = UDim2.fromScale(0.7, 0)
-toggleLabel.AutomaticSize = Enum.AutomaticSize.Y
-toggleLabel.BackgroundTransparency = 1
-toggleLabel.Font = Enum.Font.GothamMedium
-toggleLabel.Text = "Enable smooth mode"
-toggleLabel.TextColor3 = theme.subText
-toggleLabel.TextScaled = true
-toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-toggleLabel.Parent = toggleRow
-
-local toggleLabelSize = Instance.new("UITextSizeConstraint")
-toggleLabelSize.MinTextSize = 11
-toggleLabelSize.MaxTextSize = 16
-toggleLabelSize.Parent = toggleLabel
-
-local toggleSwitch = Instance.new("TextButton")
-toggleSwitch.Size = UDim2.fromScale(0.28, 0)
-toggleSwitch.AutomaticSize = Enum.AutomaticSize.Y
-toggleSwitch.BackgroundColor3 = Color3.fromRGB(58, 72, 96)
-toggleSwitch.Text = ""
-toggleSwitch.Parent = toggleRow
-round(toggleSwitch, 999)
-stroke(toggleSwitch, Color3.fromRGB(120, 143, 183), 1, 0.4)
-
-local toggleSwitchAspect = Instance.new("UIAspectRatioConstraint")
-toggleSwitchAspect.AspectRatio = 2.1
-toggleSwitchAspect.Parent = toggleSwitch
-
-local toggleKnob = Instance.new("Frame")
-toggleKnob.AnchorPoint = Vector2.new(0, 0.5)
-toggleKnob.Size = UDim2.fromScale(0.42, 0.78)
-toggleKnob.Position = UDim2.fromScale(0.05, 0.5)
-toggleKnob.BackgroundColor3 = theme.text
-toggleKnob.Parent = toggleSwitch
-round(toggleKnob, 999)
-
-local isEnabled = false
-local function refreshToggle()
-	local toggleGoal = {
-		BackgroundColor3 = isEnabled and theme.accentDark or Color3.fromRGB(58, 72, 96),
+	local colors = {
+		Color3.fromRGB(21, 216, 180),
+		Color3.fromRGB(128, 100, 225),
+		Color3.fromRGB(220, 95, 173),
+		Color3.fromRGB(245, 134, 60),
+		Color3.fromRGB(77, 148, 230),
 	}
-	local knobGoal = {
-		Position = isEnabled and UDim2.fromScale(0.53, 0.5) or UDim2.fromScale(0.05, 0.5),
-	}
-	TweenService:Create(toggleSwitch, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), toggleGoal):Play()
-	TweenService:Create(toggleKnob, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), knobGoal):Play()
+
+	for i, color in ipairs(colors) do
+		local chip = Instance.new("Frame")
+		chip.AnchorPoint = Vector2.new(1, 0.5)
+		chip.Size = UDim2.fromOffset(34, 34)
+		chip.Position = UDim2.new(1, -(6 + (6 - i) * 40), 0.5, 0)
+		chip.BackgroundColor3 = color
+		chip.Parent = row
+		round(chip, 999)
+
+		if i == 1 then
+			stroke(chip, Color3.fromRGB(231, 255, 255), 2, 0.08)
+			local halo = Instance.new("Frame")
+			halo.AnchorPoint = Vector2.new(0.5, 0.5)
+			halo.Position = UDim2.fromScale(0.5, 0.5)
+			halo.Size = UDim2.fromScale(1.35, 1.35)
+			halo.BackgroundTransparency = 1
+			halo.Parent = chip
+			round(halo, 999)
+			stroke(halo, color, 1, 0.25)
+		end
+	end
 end
 
-toggleSwitch.Activated:Connect(function()
-	isEnabled = not isEnabled
-	refreshToggle()
-end)
+local function makeToggleRow(title, subtitle, enabled)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 66)
+	row.BackgroundTransparency = 1
+	row.Parent = body
 
-local sliderCard = createCard("SliderCard")
-createCardTitle(sliderCard, "Slider")
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Size = UDim2.new(1, -88, 0, 30)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Font = Enum.Font.GothamSemibold
+	titleLabel.Text = title
+	titleLabel.TextColor3 = theme.mainText
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.TextScaled = true
+	titleLabel.Parent = row
+	textSize(titleLabel, 14, 30)
 
-local sliderRow = createRow(sliderCard)
+	local subtitleLabel = Instance.new("TextLabel")
+	subtitleLabel.Position = UDim2.fromOffset(0, 30)
+	subtitleLabel.Size = UDim2.new(1, -88, 0, 34)
+	subtitleLabel.BackgroundTransparency = 1
+	subtitleLabel.Font = Enum.Font.Code
+	subtitleLabel.Text = subtitle
+	subtitleLabel.TextColor3 = theme.subText
+	subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	subtitleLabel.TextWrapped = true
+	subtitleLabel.TextScaled = true
+	subtitleLabel.Parent = row
+	textSize(subtitleLabel, 10, 20)
 
-local sliderValue = Instance.new("TextLabel")
-sliderValue.Size = UDim2.fromScale(0.22, 0)
-sliderValue.AutomaticSize = Enum.AutomaticSize.Y
-sliderValue.BackgroundTransparency = 1
-sliderValue.Font = Enum.Font.GothamSemibold
-sliderValue.Text = "50%"
-sliderValue.TextColor3 = theme.text
-sliderValue.TextScaled = true
-sliderValue.TextXAlignment = Enum.TextXAlignment.Right
-sliderValue.Parent = sliderRow
+	local toggle = Instance.new("TextButton")
+	toggle.AnchorPoint = Vector2.new(1, 0.5)
+	toggle.Position = UDim2.new(1, 0, 0.5, 0)
+	toggle.Size = UDim2.fromOffset(86, 40)
+	toggle.AutoButtonColor = false
+	toggle.Text = ""
+	toggle.BackgroundColor3 = enabled and theme.accent or theme.switchOff
+	toggle.Parent = row
+	round(toggle, 999)
 
-local sliderValueSize = Instance.new("UITextSizeConstraint")
-sliderValueSize.MinTextSize = 11
-sliderValueSize.MaxTextSize = 16
-sliderValueSize.Parent = sliderValue
+	local knob = Instance.new("Frame")
+	knob.AnchorPoint = Vector2.new(0.5, 0.5)
+	knob.Size = UDim2.fromOffset(30, 30)
+	knob.Position = enabled and UDim2.new(1, -20, 0.5, 0) or UDim2.new(0, 20, 0.5, 0)
+	knob.BackgroundColor3 = theme.switchKnob
+	knob.BorderSizePixel = 0
+	knob.Parent = toggle
+	round(knob, 999)
 
-local sliderTrack = Instance.new("Frame")
-sliderTrack.Size = UDim2.fromScale(0.78, 0)
-sliderTrack.AutomaticSize = Enum.AutomaticSize.Y
-sliderTrack.BackgroundColor3 = Color3.fromRGB(58, 72, 96)
-sliderTrack.Parent = sliderRow
-round(sliderTrack, 999)
-
-local sliderTrackAspect = Instance.new("UIAspectRatioConstraint")
-sliderTrackAspect.AspectRatio = 8
-sliderTrackAspect.Parent = sliderTrack
-
-local sliderFill = Instance.new("Frame")
-sliderFill.Size = UDim2.fromScale(0.5, 1)
-sliderFill.BackgroundColor3 = theme.accent
-sliderFill.BorderSizePixel = 0
-sliderFill.Parent = sliderTrack
-round(sliderFill, 999)
-
-local sliderKnob = Instance.new("Frame")
-sliderKnob.AnchorPoint = Vector2.new(0.5, 0.5)
-sliderKnob.Size = UDim2.fromScale(0.09, 1.45)
-sliderKnob.Position = UDim2.fromScale(0.5, 0.5)
-sliderKnob.BackgroundColor3 = theme.text
-sliderKnob.Parent = sliderTrack
-round(sliderKnob, 999)
-stroke(sliderKnob, Color3.fromRGB(187, 221, 255), 1, 0.4)
-
-local sliderButton = Instance.new("TextButton")
-sliderButton.BackgroundTransparency = 1
-sliderButton.Size = UDim2.fromScale(1, 1)
-sliderButton.Text = ""
-sliderButton.Parent = sliderTrack
-
-local sliderHeld = false
-local function setSliderFromPosition(xPos)
-	local absoluteX = sliderTrack.AbsolutePosition.X
-	local absoluteWidth = sliderTrack.AbsoluteSize.X
-	if absoluteWidth <= 0 then
-		return
+	local state = enabled
+	local function refresh()
+		TweenService:Create(toggle, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundColor3 = state and theme.accent or theme.switchOff,
+		}):Play()
+		TweenService:Create(knob, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = state and UDim2.new(1, -20, 0.5, 0) or UDim2.new(0, 20, 0.5, 0),
+		}):Play()
 	end
-	local alpha = math.clamp((xPos - absoluteX) / absoluteWidth, 0, 1)
-	sliderFill.Size = UDim2.fromScale(alpha, 1)
-	sliderKnob.Position = UDim2.fromScale(alpha, 0.5)
-	sliderValue.Text = string.format("%d%%", math.floor(alpha * 100 + 0.5))
-end
 
-sliderButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		sliderHeld = true
-		setSliderFromPosition(input.Position.X)
-	end
-end)
-
-sliderButton.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		sliderHeld = false
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if sliderHeld and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		setSliderFromPosition(input.Position.X)
-	end
-end)
-
-local dropdownCard = createCard("DropdownCard")
-createCardTitle(dropdownCard, "Dropdown")
-
-local dropdownButton = Instance.new("TextButton")
-dropdownButton.Size = UDim2.fromScale(1, 0)
-dropdownButton.AutomaticSize = Enum.AutomaticSize.Y
-dropdownButton.BackgroundColor3 = theme.surfaceBright
-dropdownButton.Font = Enum.Font.GothamSemibold
-dropdownButton.Text = "Select Option  ▾"
-dropdownButton.TextColor3 = theme.text
-dropdownButton.TextScaled = true
-dropdownButton.Parent = dropdownCard
-round(dropdownButton, 10)
-stroke(dropdownButton, Color3.fromRGB(96, 121, 161), 1, 0.45)
-
-local dropdownButtonSize = Instance.new("UITextSizeConstraint")
-dropdownButtonSize.MinTextSize = 12
-dropdownButtonSize.MaxTextSize = 17
-dropdownButtonSize.Parent = dropdownButton
-
-local dropdownList = Instance.new("Frame")
-dropdownList.Size = UDim2.fromScale(1, 0)
-dropdownList.AutomaticSize = Enum.AutomaticSize.Y
-dropdownList.BackgroundColor3 = Color3.fromRGB(15, 24, 39)
-dropdownList.Visible = false
-dropdownList.Parent = dropdownCard
-round(dropdownList, 10)
-stroke(dropdownList, Color3.fromRGB(96, 121, 161), 1, 0.5)
-
-local dropdownLayout = Instance.new("UIListLayout")
-dropdownLayout.Padding = UDim.new(0, 6)
-dropdownLayout.Parent = dropdownList
-
-local dropdownPadding = Instance.new("UIPadding")
-dropdownPadding.PaddingTop = UDim.new(0, 8)
-dropdownPadding.PaddingBottom = UDim.new(0, 8)
-dropdownPadding.PaddingLeft = UDim.new(0, 8)
-dropdownPadding.PaddingRight = UDim.new(0, 8)
-dropdownPadding.Parent = dropdownList
-
-local options = { "Normal", "Competitive", "Casual", "Ultra" }
-for _, option in ipairs(options) do
-	local optionButton = Instance.new("TextButton")
-	optionButton.Size = UDim2.fromScale(1, 0)
-	optionButton.AutomaticSize = Enum.AutomaticSize.Y
-	optionButton.BackgroundColor3 = theme.surface
-	optionButton.Font = Enum.Font.GothamMedium
-	optionButton.Text = option
-	optionButton.TextColor3 = theme.subText
-	optionButton.TextScaled = true
-	optionButton.Parent = dropdownList
-	round(optionButton, 8)
-
-	local optionTextSize = Instance.new("UITextSizeConstraint")
-	optionTextSize.MinTextSize = 11
-	optionTextSize.MaxTextSize = 16
-	optionTextSize.Parent = optionButton
-
-	optionButton.Activated:Connect(function()
-		dropdownButton.Text = option .. "  ▾"
-		dropdownList.Visible = false
+	toggle.Activated:Connect(function()
+		state = not state
+		refresh()
 	end)
+
+	if enabled then
+		local glow = Instance.new("UIStroke")
+		glow.Color = theme.accent
+		glow.Thickness = 1
+		glow.Transparency = 0.4
+		glow.Parent = toggle
+	end
 end
 
-dropdownButton.Activated:Connect(function()
-	dropdownList.Visible = not dropdownList.Visible
-	dropdownButton.Text = (dropdownList.Visible and "Select Option  ▴") or "Select Option  ▾"
-end)
+local function makeHotkeyRow()
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 40)
+	row.BackgroundTransparency = 1
+	row.Parent = body
 
-openButton.Activated:Connect(function()
-	mainMenu.Visible = true
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -120, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamSemibold
+	label.Text = "Toggle Menu"
+	label.TextColor3 = theme.mainText
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = row
+	textSize(label, 14, 30)
+
+	local key = Instance.new("TextButton")
+	key.AnchorPoint = Vector2.new(1, 0.5)
+	key.Position = UDim2.new(1, 0, 0.5, 0)
+	key.Size = UDim2.fromOffset(122, 40)
+	key.BackgroundColor3 = Color3.fromRGB(7, 18, 32)
+	key.AutoButtonColor = false
+	key.TextColor3 = theme.accent
+	key.Font = Enum.Font.Code
+	key.Text = "Insert"
+	key.TextScaled = true
+	key.Parent = row
+	round(key, 10)
+	stroke(key, Color3.fromRGB(32, 92, 97), 1, 0.25)
+	textSize(key, 16, 24)
+end
+
+makeSection("APPEARANCE")
+makeTitleRow("Menu Opacity")
+makeSlider(0.92)
+makeTitleRow("Menu Scale")
+makeSlider(1)
+makeAccentRow()
+
+makeSection("BEHAVIOR")
+makeToggleRow("Always on Top", "Forces menu above all windows", true)
+makeToggleRow("Click-Through", "Backdrop ignores mouse", false)
+makeToggleRow("Remember Position", "Saves menu position on close", true)
+
+makeSection("HOTKEYS")
+makeHotkeyRow()
+
+local function showMenu()
+	menu.Visible = true
 	openButton.Visible = false
-end)
+end
 
-closeButton.Activated:Connect(function()
-	mainMenu.Visible = false
+local function hideMenu()
+	menu.Visible = false
 	openButton.Visible = true
-end)
+end
 
-makeDraggable(topBar, mainMenu)
+openButton.Activated:Connect(showMenu)
+closeButton.Activated:Connect(hideMenu)
+
+makeDraggable(header, menu)
 makeDraggable(openButton, openButton)

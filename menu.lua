@@ -582,11 +582,6 @@ function MenuDesign.build(playerGui)
 	makeDropdownRow("Open Animation", { "Smooth", "Instant", "Elastic" }, 1)
 	makeDropdownRow("Close Animation", { "Smooth", "Instant", "Elastic" }, 1)
 
-	makeSection("BEHAVIOR")
-	makeToggleRow("Always on Top", "Forces menu above all windows", true)
-	makeToggleRow("Click-Through", "Backdrop ignores mouse", false)
-	makeToggleRow("Remember Position", "Saves menu position on close", true)
-
 	local function applyResponsiveMenuLayout()
 		local viewportSize = getViewportSize()
 		local baseWidth = 470

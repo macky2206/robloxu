@@ -59,6 +59,59 @@ local MenuDesign = resolveMenuDesign()
 local ui = MenuDesign.build(playerGui)
 local theme = ui.theme
 
+local BASE_MENU_SIZE = Vector2.new(470, 820)
+local function fitMenuToViewport()
+	local camera = workspace.CurrentCamera
+	local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+	local menu = ui.menu
+	local aspect = menu and menu:FindFirstChildOfClass("UIAspectRatioConstraint")
+	if not menu then
+		return
+	end
+
+	local landscapeShort = viewportSize.X > viewportSize.Y and viewportSize.Y <= 780
+	local compactViewport = viewportSize.X < BASE_MENU_SIZE.X + 160 or viewportSize.Y < BASE_MENU_SIZE.Y
+
+	if landscapeShort then
+		if aspect then
+			aspect.Enabled = false
+		end
+
+		local targetWidth = math.floor(math.clamp(viewportSize.X * 0.42, 360, 420))
+		local targetHeight = math.floor(math.clamp(viewportSize.Y * 0.86, 520, viewportSize.Y - 36))
+		menu.Size = UDim2.fromOffset(targetWidth, targetHeight)
+	elseif compactViewport then
+		if aspect then
+			aspect.Enabled = false
+		end
+
+		local scale = math.min((viewportSize.X - 36) / BASE_MENU_SIZE.X, (viewportSize.Y - 36) / BASE_MENU_SIZE.Y, 1)
+		scale = math.clamp(scale, 0.68, 1)
+		menu.Size = UDim2.fromOffset(
+			math.floor(BASE_MENU_SIZE.X * scale),
+			math.floor(BASE_MENU_SIZE.Y * scale)
+		)
+	elseif aspect then
+		aspect.Enabled = true
+		menu.Size = UDim2.fromOffset(BASE_MENU_SIZE.X, BASE_MENU_SIZE.Y)
+	end
+end
+
+fitMenuToViewport()
+
+local camera = workspace.CurrentCamera
+if camera then
+	camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitMenuToViewport)
+end
+
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitMenuToViewport)
+	end
+	fitMenuToViewport()
+end)
+
 local function makeDraggable(handle, target)
 	handle.Active = true
 

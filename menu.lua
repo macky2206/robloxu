@@ -579,17 +579,19 @@ function MenuDesign.build(playerGui)
 
 	local function applyResponsiveMenuLayout()
 		local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
-		local shortestSide = math.min(viewportSize.X, viewportSize.Y)
-		local isMobile = shortestSide <= 900
+		local baseWidth = 470
+		local baseHeight = 820
+		local availableWidth = math.max(0, viewportSize.X - 48)
+		local availableHeight = math.max(0, viewportSize.Y - 48)
+		local needsCompactLayout = availableWidth < baseWidth or availableHeight < baseHeight
 
-		if isMobile then
-			if viewportSize.Y >= viewportSize.X then
-				menu.Size = UDim2.fromScale(0.92, 0.84)
-				menuAspect.DominantAxis = Enum.DominantAxis.Height
-			else
-				menu.Size = UDim2.fromScale(0.82, 0.72)
-				menuAspect.DominantAxis = Enum.DominantAxis.Width
-			end
+		if needsCompactLayout then
+			menuAspect.Enabled = false
+
+			local targetWidth = math.floor(math.min(baseWidth, availableWidth))
+			local targetHeight = math.floor(math.min(baseHeight, availableHeight))
+
+			menu.Size = UDim2.fromOffset(targetWidth, targetHeight)
 
 			sidebar.Size = UDim2.fromOffset(68, 1)
 			sidebarHeight.MinSize = Vector2.new(68, 0)
@@ -604,8 +606,9 @@ function MenuDesign.build(playerGui)
 			headerTag.Position = UDim2.new(1, -20, 0, 28)
 			headerTag.Size = UDim2.fromOffset(116, 22)
 		else
-			menu.Size = UDim2.fromOffset(470, 820)
+			menu.Size = UDim2.fromOffset(baseWidth, baseHeight)
 			menuAspect.DominantAxis = Enum.DominantAxis.Width
+			menuAspect.Enabled = true
 			sidebar.Size = UDim2.fromOffset(72, 1)
 			sidebarHeight.MinSize = Vector2.new(72, 0)
 			contentWrap.Position = UDim2.fromOffset(72, 0)

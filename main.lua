@@ -6,7 +6,6 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local REMOTE_MENU_URLS = {
-	"https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/copilot/make-design-like-sent-images/menu.lua",
 	"https://raw.githubusercontent.com/macky2206/robloxu/refs/heads/main/menu.lua",
 }
 

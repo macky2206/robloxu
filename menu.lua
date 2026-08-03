@@ -52,7 +52,7 @@ function MenuDesign.build(playerGui)
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screenGui.Parent = playerGui
 
-	local camera = workspace.CurrentCamera
+	local currentCamera = workspace.CurrentCamera
 
 	local openButton = Instance.new("TextButton")
 	openButton.Name = "OpenMenuButton"
@@ -108,6 +108,16 @@ function MenuDesign.build(playerGui)
 	local menuAspect = Instance.new("UIAspectRatioConstraint")
 	menuAspect.AspectRatio = 0.58
 	menuAspect.Parent = menu
+
+	local function getViewportSize()
+		local camera = workspace.CurrentCamera or currentCamera
+		if camera then
+			currentCamera = camera
+			return camera.ViewportSize
+		end
+
+		return screenGui.AbsoluteSize.X > 0 and screenGui.AbsoluteSize or Vector2.new(1920, 1080)
+	end
 
 	local sidebar = Instance.new("Frame")
 	sidebar.Size = UDim2.fromOffset(72, 1)
@@ -578,7 +588,7 @@ function MenuDesign.build(playerGui)
 	makeToggleRow("Remember Position", "Saves menu position on close", true)
 
 	local function applyResponsiveMenuLayout()
-		local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+		local viewportSize = getViewportSize()
 		local baseWidth = 470
 		local baseHeight = 820
 		local availableWidth = math.max(0, viewportSize.X - 48)
@@ -626,9 +636,17 @@ function MenuDesign.build(playerGui)
 
 	applyResponsiveMenuLayout()
 
-	if camera then
-		camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyResponsiveMenuLayout)
+	if currentCamera then
+		currentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(applyResponsiveMenuLayout)
 	end
+
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		currentCamera = workspace.CurrentCamera
+		if currentCamera then
+			currentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(applyResponsiveMenuLayout)
+		end
+		applyResponsiveMenuLayout()
+	end)
 
 	return {
 		theme = theme,

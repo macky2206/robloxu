@@ -97,38 +97,57 @@ local function fitMenuToViewport()
 	end
 end
 
-fitMenuToViewport()
+local function fitOpenButtonToViewport()
+	local camera = workspace.CurrentCamera
+	local viewportSize = camera and camera.ViewportSize or Vector2.new(1920, 1080)
+	local buttonSize = math.floor(math.clamp(math.min(viewportSize.X, viewportSize.Y) * 0.075, 54, 72))
+	ui.openButton.Size = UDim2.fromOffset(buttonSize, buttonSize)
+end
+
+local function applyViewportLayout()
+	fitMenuToViewport()
+	fitOpenButtonToViewport()
+end
+
+applyViewportLayout()
 
 local camera = workspace.CurrentCamera
 if camera then
-	camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitMenuToViewport)
+	camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyViewportLayout)
 end
 
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 	camera = workspace.CurrentCamera
 	if camera then
-		camera:GetPropertyChangedSignal("ViewportSize"):Connect(fitMenuToViewport)
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyViewportLayout)
 	end
-	fitMenuToViewport()
+	applyViewportLayout()
 end)
 
-local function makeDraggable(handle, target)
+local function makeDraggable(handle, target, options)
 	handle.Active = true
+	local onTap = options and options.onTap
+	local dragThreshold = options and options.dragThreshold or 6
 
 	local dragging = false
 	local dragInput
 	local startPos
 	local startTargetPos
+	local movedEnough = false
 
 	handle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			movedEnough = false
 			startPos = input.Position
 			startTargetPos = target.Position
 			dragInput = input
 
 			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
+					if onTap and not movedEnough then
+						onTap()
+					end
 					dragging = false
 				end
 			end)
@@ -144,6 +163,14 @@ local function makeDraggable(handle, target)
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and input == dragInput then
 			local delta = input.Position - startPos
+			if not movedEnough and delta.Magnitude >= dragThreshold then
+				movedEnough = true
+			end
+
+			if not movedEnough then
+				return
+			end
+
 			target.Position = UDim2.new(
 				startTargetPos.X.Scale,
 				startTargetPos.X.Offset + delta.X,
@@ -223,8 +250,7 @@ for _, dropdownData in ipairs(ui.dropdowns or {}) do
 	end
 end
 
-ui.openButton.Activated:Connect(showMenu)
 ui.closeButton.Activated:Connect(hideMenu)
 
 makeDraggable(ui.header, ui.menu)
-makeDraggable(ui.openButton, ui.openButton)
+makeDraggable(ui.openButton, ui.openButton, { onTap = showMenu })

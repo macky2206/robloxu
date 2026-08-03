@@ -396,6 +396,7 @@ function MenuDesign.build(playerGui)
 	end
 
 	local toggles = {}
+	local dropdowns = {}
 
 	local function makeToggleRow(title, subtitle, enabled)
 		local row = Instance.new("Frame")
@@ -461,12 +462,117 @@ function MenuDesign.build(playerGui)
 		})
 	end
 
+	local function makeDropdownRow(title, options, selectedIndex)
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, 0, 0, 0)
+		row.AutomaticSize = Enum.AutomaticSize.Y
+		row.BackgroundTransparency = 1
+		row.Parent = body
+
+		local rowLayout = Instance.new("UIListLayout")
+		rowLayout.Padding = UDim.new(0, 6)
+		rowLayout.Parent = row
+
+		local titleLabel = Instance.new("TextLabel")
+		titleLabel.Size = UDim2.new(1, 0, 0, 28)
+		titleLabel.BackgroundTransparency = 1
+		titleLabel.Font = Enum.Font.GothamSemibold
+		titleLabel.Text = title
+		titleLabel.TextColor3 = theme.mainText
+		titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		titleLabel.TextScaled = true
+		titleLabel.Parent = row
+		textSize(titleLabel, 13, 30)
+
+		local mainButton = Instance.new("TextButton")
+		mainButton.Size = UDim2.new(1, 0, 0, 40)
+		mainButton.BackgroundColor3 = Color3.fromRGB(7, 18, 32)
+		mainButton.AutoButtonColor = false
+		mainButton.Font = Enum.Font.Code
+		mainButton.TextColor3 = theme.accent
+		mainButton.TextXAlignment = Enum.TextXAlignment.Left
+		mainButton.TextScaled = true
+		mainButton.Parent = row
+		round(mainButton, 10)
+		stroke(mainButton, Color3.fromRGB(32, 92, 97), 1, 0.25)
+		textSize(mainButton, 13, 22)
+
+		local buttonPadding = Instance.new("UIPadding")
+		buttonPadding.PaddingLeft = UDim.new(0, 12)
+		buttonPadding.PaddingRight = UDim.new(0, 12)
+		buttonPadding.Parent = mainButton
+
+		local buttonArrow = Instance.new("TextLabel")
+		buttonArrow.AnchorPoint = Vector2.new(1, 0.5)
+		buttonArrow.Position = UDim2.new(1, -10, 0.5, 0)
+		buttonArrow.Size = UDim2.fromOffset(20, 20)
+		buttonArrow.BackgroundTransparency = 1
+		buttonArrow.Font = Enum.Font.GothamBold
+		buttonArrow.Text = "▾"
+		buttonArrow.TextColor3 = theme.subText
+		buttonArrow.TextScaled = true
+		buttonArrow.Parent = mainButton
+		textSize(buttonArrow, 12, 18)
+
+		local list = Instance.new("Frame")
+		list.Size = UDim2.new(1, 0, 0, 0)
+		list.AutomaticSize = Enum.AutomaticSize.Y
+		list.BackgroundColor3 = Color3.fromRGB(8, 16, 28)
+		list.BorderSizePixel = 0
+		list.Visible = false
+		list.Parent = row
+		round(list, 10)
+		stroke(list, Color3.fromRGB(32, 92, 97), 1, 0.35)
+
+		local listLayout = Instance.new("UIListLayout")
+		listLayout.Padding = UDim.new(0, 4)
+		listLayout.Parent = list
+
+		local listPadding = Instance.new("UIPadding")
+		listPadding.PaddingTop = UDim.new(0, 6)
+		listPadding.PaddingBottom = UDim.new(0, 6)
+		listPadding.PaddingLeft = UDim.new(0, 6)
+		listPadding.PaddingRight = UDim.new(0, 6)
+		listPadding.Parent = list
+
+		local optionButtons = {}
+		for _, option in ipairs(options) do
+			local optionButton = Instance.new("TextButton")
+			optionButton.Size = UDim2.new(1, 0, 0, 30)
+			optionButton.BackgroundColor3 = Color3.fromRGB(10, 23, 38)
+			optionButton.BorderSizePixel = 0
+			optionButton.AutoButtonColor = false
+			optionButton.Font = Enum.Font.Code
+			optionButton.Text = option
+			optionButton.TextColor3 = theme.mainText
+			optionButton.TextScaled = true
+			optionButton.Parent = list
+			round(optionButton, 8)
+			textSize(optionButton, 11, 18)
+			table.insert(optionButtons, optionButton)
+		end
+
+		local selected = options[selectedIndex] or options[1] or "Select"
+		mainButton.Text = selected
+
+		table.insert(dropdowns, {
+			button = mainButton,
+			arrow = buttonArrow,
+			list = list,
+			options = options,
+			optionButtons = optionButtons,
+			selected = selected,
+		})
+	end
+
 	makeSection("APPEARANCE")
 	makeTitleRow("Menu Opacity")
 	makeSlider(0.92)
 	makeTitleRow("Menu Scale")
 	makeSlider(1)
 	makeAccentRow()
+	makeDropdownRow("Theme Preset", { "Default", "Stealth", "Neon", "Soft" }, 1)
+	makeDropdownRow("Animation Style", { "Smooth", "Instant", "Elastic" }, 1)
 
 	makeSection("BEHAVIOR")
 	makeToggleRow("Always on Top", "Forces menu above all windows", true)
@@ -481,6 +587,7 @@ function MenuDesign.build(playerGui)
 		closeButton = closeButton,
 		header = header,
 		toggles = toggles,
+		dropdowns = dropdowns,
 	}
 end
 

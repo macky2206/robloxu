@@ -57,6 +57,10 @@ local function showMenu()
 end
 
 local function hideMenu()
+	for _, dropdownData in ipairs(ui.dropdowns or {}) do
+		dropdownData.list.Visible = false
+		dropdownData.arrow.Text = "▾"
+	end
 	ui.menu.Visible = false
 	ui.openButton.Visible = true
 end
@@ -91,22 +95,33 @@ for _, toggleData in ipairs(ui.toggles) do
 	end)
 end
 
+local function closeAllDropdowns()
+	for _, dropdownData in ipairs(ui.dropdowns or {}) do
+		dropdownData.list.Visible = false
+		dropdownData.arrow.Text = "▾"
+	end
+end
+
+for _, dropdownData in ipairs(ui.dropdowns or {}) do
+	dropdownData.button.Activated:Connect(function()
+		local shouldOpen = not dropdownData.list.Visible
+		closeAllDropdowns()
+		dropdownData.list.Visible = shouldOpen
+		dropdownData.arrow.Text = shouldOpen and "▴" or "▾"
+	end)
+
+	for _, optionButton in ipairs(dropdownData.optionButtons) do
+		optionButton.Activated:Connect(function()
+			dropdownData.selected = optionButton.Text
+			dropdownData.button.Text = optionButton.Text
+			dropdownData.list.Visible = false
+			dropdownData.arrow.Text = "▾"
+		end)
+	end
+end
+
 ui.openButton.Activated:Connect(showMenu)
 ui.closeButton.Activated:Connect(hideMenu)
-
-UserInputService.InputBegan:Connect(function(input, processed)
-	if processed then
-		return
-	end
-
-	if input.KeyCode == Enum.KeyCode.Insert then
-		if ui.menu.Visible then
-			hideMenu()
-		else
-			showMenu()
-		end
-	end
-end)
 
 makeDraggable(ui.header, ui.menu)
 makeDraggable(ui.openButton, ui.openButton)

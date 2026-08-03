@@ -238,7 +238,7 @@ function MenuDesign.build(playerGui)
 	headerTag.Size = UDim2.fromOffset(130, 24)
 	headerTag.BackgroundTransparency = 1
 	headerTag.Font = Enum.Font.Code
-	headerTag.Text = "MOD MENU"
+	headerTag.Text = "MENU SETTINGS"
 	headerTag.TextColor3 = Color3.fromRGB(36, 131, 117)
 	headerTag.TextXAlignment = Enum.TextXAlignment.Right
 	headerTag.TextScaled = true
@@ -560,14 +560,14 @@ function MenuDesign.build(playerGui)
 		})
 	end
 
-	makeSection("APPEARANCE")
+	makeSection("MENU BEHAVIOR")
 	makeTitleRow("Menu Opacity")
 	makeSlider(0.92)
 	makeTitleRow("Menu Scale")
 	makeSlider(1)
 	makeAccentRow()
-	makeDropdownRow("Theme Preset", { "Default", "Stealth", "Neon", "Soft" }, 1)
-	makeDropdownRow("Animation Style", { "Smooth", "Instant", "Elastic" }, 1)
+	makeDropdownRow("Open Animation", { "Smooth", "Instant", "Elastic" }, 1)
+	makeDropdownRow("Close Animation", { "Smooth", "Instant", "Elastic" }, 1)
 
 	makeSection("BEHAVIOR")
 	makeToggleRow("Always on Top", "Forces menu above all windows", true)
